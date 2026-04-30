@@ -2,17 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class EMGScreen extends StatefulWidget {
-  const EMGScreen({super.key});
+  final Map<String, dynamic> datos;
+
+  const EMGScreen({super.key, required this.datos});
 
   @override
   State<EMGScreen> createState() => _EMGScreenState();
 }
 
 class _EMGScreenState extends State<EMGScreen> {
-  double _bateria = 78;
+  final List<FlSpot> _emg1 = List.generate(50, (i) => FlSpot(i.toDouble(), 0));
+  final List<FlSpot> _emg2 = List.generate(50, (i) => FlSpot(i.toDouble(), 0));
+  int _tick = 0;
 
-  final List<FlSpot> _emg1 = List.generate(20, (i) => FlSpot(i.toDouble(), 0));
-  final List<FlSpot> _emg2 = List.generate(20, (i) => FlSpot(i.toDouble(), 0));
+  @override
+  void didUpdateWidget(EMGScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.datos.isNotEmpty) {
+      _actualizarGraficos();
+    }
+  }
+
+  void _actualizarGraficos() {
+    final emg1 = (widget.datos['emg1'] ?? 0).toDouble();
+    final emg2 = (widget.datos['emg2'] ?? 0).toDouble();
+
+    // Normalizar entre -1 y 1
+    final emg1Norm = (emg1 / 4095 * 2 - 1);
+    final emg2Norm = (emg2 / 4095 * 2 - 1);
+
+    setState(() {
+      _emg1.removeAt(0);
+      _emg1.add(FlSpot(_tick.toDouble(), emg1Norm));
+      _emg2.removeAt(0);
+      _emg2.add(FlSpot(_tick.toDouble(), emg2Norm));
+
+      // Reindexar
+      for (int i = 0; i < _emg1.length; i++) {
+        _emg1[i] = FlSpot(i.toDouble(), _emg1[i].y);
+        _emg2[i] = FlSpot(i.toDouble(), _emg2[i].y);
+      }
+      _tick++;
+    });
+  }
+
+  double get _bateria => (widget.datos['bateria'] ?? 0).toDouble();
+  bool get _senialOk => widget.datos['senial_ok'] ?? false;
+  String get _modo => widget.datos['modo'] ?? 'sin conexion';
 
   Color get _bateriaColor {
     if (_bateria > 50) return const Color(0xFF52B788);
@@ -22,37 +58,59 @@ class _EMGScreenState extends State<EMGScreen> {
 
   Widget _buildBateria() {
     return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Batería',
-                  style: TextStyle(color: Colors.white70, fontSize: 13)),
-              Text('${_bateria.toInt()}%',
-                  style: TextStyle(
-                      color: _bateriaColor, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: _bateria / 100,
-              minHeight: 10,
-              backgroundColor: Colors.grey[800],
-              valueColor: AlwaysStoppedAnimation<Color>(_bateriaColor),
-            ),
-          ),
-        ],
-      ),
+            const Text('Bateria',
+            style: TextStyle(color: Colors.white70, fontSize: 13)),
+        Row(
+            children: [
+        Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+            color: _senialOk
+            ? Colors.greenAccent.withOpacity(0.2)
+            : Colors.redAccent.withOpacity(0.2),
+    borderRadius: BorderRadius.circular(8),
+    ),
+    child: Text(
+    _senialOk ? 'Senal OK' : 'Sin senal',
+    style: TextStyle(
+    color: _senialOk ? Colors.greenAccent : Colors.redAccent,
+    fontSize: 10,
+    ),
+    ),
+    ),
+    const SizedBox(width: 8),
+    Text('${_bateria.toInt()}%',
+    style: TextStyle(
+    color: _bateriaColor,
+    fontWeight: FontWeight.bold)),
+    ],
+    ),
+    ],
+    ),
+    const SizedBox(height: 6),
+    ClipRRect(
+    borderRadius: BorderRadius.circular(6),
+    child: LinearProgressIndicator(
+    value: _bateria / 100,
+    minHeight: 10,
+    backgroundColor: Colors.grey[800],
+    valueColor: AlwaysStoppedAnimation<Color>(_bateriaColor),
+    ),
+    ),
+    ],
+    ),
     );
   }
 
@@ -111,7 +169,7 @@ class _EMGScreenState extends State<EMGScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Telemetría EMG'),
+        title: const Text('Telemetria EMG'),
         backgroundColor: const Color(0xFF2D6A4F),
       ),
       body: SingleChildScrollView(
@@ -131,9 +189,13 @@ class _EMGScreenState extends State<EMGScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMetrica('Estado', 'Sin señal', Colors.grey),
-                  _buildMetrica('Frecuencia', '-- Hz', const Color(0xFF52B788)),
-                  _buildMetrica('Amplitud', '-- mV', const Color(0xFF95D5B2)),
+                  _buildMetrica('Estado',
+                      _senialOk ? 'Activo' : 'Sin senal',
+                      _senialOk ? Colors.greenAccent : Colors.grey),
+                  _buildMetrica('Modo', _modo, const Color(0xFF52B788)),
+                  _buildMetrica('EMG',
+                      widget.datos['emg1']?.toString() ?? '--',
+                      const Color(0xFF95D5B2)),
                 ],
               ),
             ),
@@ -152,7 +214,9 @@ class _EMGScreenState extends State<EMGScreen> {
         const SizedBox(height: 4),
         Text(valor,
             style: TextStyle(
-                color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16)),
       ],
     );
   }
