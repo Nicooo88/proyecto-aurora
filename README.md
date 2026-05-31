@@ -1,6 +1,6 @@
 # proyecto_aurora
 
-A new Flutter project.
+El proyecto del futuro, diseñado enteramente por alumnos de la Tecnica 3 de Padua. Buscamos la creacion de una protesis impresa en 3D, con plastico PLA, completamente funcional mediante la integracion de una placa ESP32, servomotores mg995 y sensores EMG junto a la aplicacion movil.
 
 ## Getting Started
 
