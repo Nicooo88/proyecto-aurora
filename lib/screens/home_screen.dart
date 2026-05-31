@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'dart:convert';
 import 'emg_screen.dart';
 import 'fingers_screen.dart';
 import 'chat_screen.dart';
@@ -21,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> _datosBrazo = {};
   List<ScanResult> _dispositivos = [];
   bool _buscando = false;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -38,17 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _pageController.dispose();
     BTService.desconectar();
     super.dispose();
-  }
-
-  Future<void> _buscarDispositivos() async {
-    setState(() => _buscando = true);
-    final resultados = await BTService.buscarDispositivos();
-    if (mounted) setState(() {
-      _dispositivos = resultados;
-      _buscando = false;
-    });
   }
 
   void enviarAccion(String accion, {int? angulo}) {
@@ -195,7 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: Icon(
-                _conectado ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+                _conectado
+                    ? Icons.bluetooth_connected
+                    : Icons.bluetooth_disabled,
                 color: _conectado ? Colors.greenAccent : Colors.redAccent,
               ),
               title: const Text('Protesis',
@@ -203,7 +197,8 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: Text(
                 _conectado ? 'Conectada' : 'Sin conexion',
                 style: TextStyle(
-                    color: _conectado ? Colors.greenAccent : Colors.redAccent),
+                    color:
+                    _conectado ? Colors.greenAccent : Colors.redAccent),
               ),
             ),
             const Divider(color: Colors.white24),
@@ -259,7 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: _conectado
                     ? Colors.greenAccent.withOpacity(0.2)
@@ -269,7 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 _conectado ? 'Conectado' : 'Sin conexion',
                 style: TextStyle(
-                    color: _conectado ? Colors.greenAccent : Colors.redAccent,
+                    color: _conectado
+                        ? Colors.greenAccent
+                        : Colors.redAccent,
                     fontSize: 11),
               ),
             ),
@@ -282,11 +280,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: screens[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+        },
+        children: screens,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
         destinations: const [
           NavigationDestination(
