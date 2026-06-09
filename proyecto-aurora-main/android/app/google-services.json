@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "947005487901",
+    "project_id": "proyecto-aurora-f534b",
+    "storage_bucket": "proyecto-aurora-f534b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947005487901:android:0ef7103591e8e1665dbff4",
+        "android_client_info": {
+          "package_name": "com.example.proyecto_aurora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCICG8jnDLILsqGcH6ERmYRJI0Y0QGvvh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,39 @@
+name: proyecto_aurora
+description: "Aplicacion android para manejar la telemetria del brazo bionico 3d."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  fl_chart: ^0.69.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.0
+  flutter_dotenv: ^5.1.0
+  flutter_blue_plus: ^1.32.0
+  cupertino_icons: ^1.0.8
+  cloud_firestore: ^5.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/images/logo.png"
+  background_color: "#0a0a0a"
+  adaptive_icon_background: "#0a0a0a"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/images/logo.png
